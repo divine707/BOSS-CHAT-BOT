@@ -2,23 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>boss</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-    header { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
-    .msg { margin: 8px 0; }
-    .user { color: #0066cc; }
-    .bot { color: #333; }
-    input { width: 80%; padding: 8px; }
-    button { padding: 8px 12px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .app {
+      width: 100%;
+      max-width: 480px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+    }
+    header {
+      background: #111;
+      color: white;
+      padding: 16px 20px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    #chat {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      line-height: 1.4;
+      font-size: 15px;
+    }
+    .user {
+      align-self: flex-end;
+      background: #007aff;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .bot {
+      align-self: flex-start;
+      background: #e5e5ea;
+      color: #111;
+      border-bottom-left-radius: 4px;
+    }
+    .input-row {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid #eee;
+      gap: 8px;
+    }
+    input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+      font-size: 15px;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      background: #007aff;
+      color: white;
+      border-radius: 20px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:active { opacity: 0.8; }
   </style>
 </head>
 <body>
-  <header>boss</header>
-  <div id="chat"></div>
-  <input type="text" id="input" placeholder="Type a message...">
-  <button onclick="sendMessage()">Send</button>
+  <div class="app">
+    <header>boss</header>
+    <div id="chat"></div>
+    <div class="input-row">
+      <input type="text" id="input" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
   <script>
     async function sendMessage() {
@@ -27,17 +102,21 @@
       const message = input.value.trim();
       if (!message) return;
 
-      chat.innerHTML += `<div class="msg user"><b>You:</b> ${message}</div>`;
+      chat.innerHTML += `<div class="msg user">${message}</div>`;
       input.value = "";
+      chat.scrollTop = chat.scrollHeight;
 
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
-      const data = await res.json();
-
-      chat.innerHTML += `<div class="msg bot"><b>boss:</b> ${data.reply}</div>`;
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        chat.innerHTML += `<div class="msg bot">${data.reply}</div>`;
+      } catch (err) {
+        chat.innerHTML += `<div class="msg bot">Error: could not reach server</div>`;
+      }
       chat.scrollTop = chat.scrollHeight;
     }
 
